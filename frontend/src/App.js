@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import SectorForm from './SectorForm';
+import SectorForm from './components/SectorForm/SectorForm';
 
 function App() {
   return (

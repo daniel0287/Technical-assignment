@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './SectorForm.css';
-
-const fetchSectorsFromApi = async () => {
-    const response = await fetch('http://localhost:8080/api/sectors');
-    if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`HTTP error! Status: ${response.status}. Details: ${errorBody || 'No additional details.'}`);
-    }
-    const data = await response.json();
-    return data;
-};
+import { fetchSectors, fetchSubmission, saveSubmission } from '../../api/sectorsApi';
 
 function SectorForm() {
     const [sectors, setSectors] = useState([]);
@@ -30,62 +21,23 @@ function SectorForm() {
         setSuccessMessage(null);
 
         let validationErrors = {};
-
-        if (!name.trim()) {
-            validationErrors.name = 'Name is required';
-        }
-
-        if (selectedSectors.length === 0) {
-            validationErrors.selectedSectors = 'At least one sector must be selected';
-        }
-         
-        if (!agreeToTerms) {
-            validationErrors.agreeToTerms = 'You must agree to the terms';
-        }
-
+        if (!name.trim()) validationErrors.name = 'Name is required';
+        if (selectedSectors.length === 0) validationErrors.selectedSectors = 'At least one sector must be selected';
+        if (!agreeToTerms) validationErrors.agreeToTerms = 'You must agree to the terms';
         setErrors(validationErrors);
 
         if (Object.keys(validationErrors).length === 0) {
             setIsSubmitting(true);
-            console.log('Form is valid. Submitting data:', { name, selectedSectors, agreeToTerms });
-            const httpMethod = submissionId ? 'PUT' : 'POST';
-            const apiUrl = submissionId ? `http://localhost:8080/api/submissions/${submissionId}` : 'http://localhost:8080/api/submissions';
             try {
-                const response = await fetch(apiUrl, {
-                    method: httpMethod,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name,
-                        selectedSectors: selectedSectors.map(id => ({ id : Number(id) })),
-                        agreeToTerms
-                    }),
-                });
-
-                if (!response.ok) {
-                    let errorDetails = 'An unexpected error occurred during submission.';
-                    let fieldErrors = {};
-                    try {
-                        const errorData = await response.json();
-                        fieldErrors = errorData; 
-                        if (Object.keys(fieldErrors).length > 0) {
-                            setErrors(fieldErrors);
-                            return;
-                        }
-                        errorDetails = errorData.message || errorDetails; 
-                    } catch (jsonError) {
-                        errorDetails = `Server error: ${response.status} ${response.statusText || ''}.`;
-                        console.error('Failed to parse error response from submission:', jsonError);
-                    }
-                    console.error('Error submitting form:', errorDetails);
-                    setGeneralFormError(errorDetails);
-                    return;
-                }
-
-                const savedSubmission = await response.json();
-                console.log('Form submitted successfully:', savedSubmission);
+                const submissionData = {
+                    name,
+                    selectedSectors: selectedSectors.map(id => ({ id: Number(id) })),
+                    agreeToTerms
+                };
+                const savedSubmission = await saveSubmission(submissionData, submissionId);
 
                 localStorage.setItem('submissionId', savedSubmission.id);
-                
+                setSubmissionId(savedSubmission.id); // Update submissionId if it was a POST
                 setName(savedSubmission.name);
                 setSelectedSectors(savedSubmission.selectedSectors.map(sector => sector.id.toString()));
                 setAgreeToTerms(savedSubmission.agreeToTerms);
@@ -95,13 +47,17 @@ function SectorForm() {
                 setTimeout(() => setSuccessMessage(null), 5000);
 
             } catch (error) {
-                console.error('Network or other error submitting form:', error);
-                setGeneralFormError('An error occurred while connecting to the server. Please try again later.');
+                console.error('Submission error:', error);
+                if (error.type === 'validation') {
+                     setErrors(error.errors);
+                     setGeneralFormError('Please fix the highlighted errors and try again.');
+                } else {
+                    setGeneralFormError(error.message || 'An unexpected error occurred during submission.');
+                }
             } finally {
                 setIsSubmitting(false);
             }
         } else {
-            console.log('Form has validation errors:', validationErrors);
             setGeneralFormError('Please fix the highlighted errors and try again.');
         }
     };
@@ -110,36 +66,26 @@ function SectorForm() {
         const loadSectorsAndSubmission = async () => {
             setIsLoadingSectors(true);
             setGeneralFormError(null);
-
             try {
-                const sectorData = await fetchSectorsFromApi();
+                const sectorData = await fetchSectors();
                 setSectors(sectorData);
-                
+
                 const storedSubmissionId = localStorage.getItem('submissionId');
                 if (storedSubmissionId) {
                     const submissionIdNum = Number(storedSubmissionId);
                     setSubmissionId(submissionIdNum);
-
-                    const response = await fetch(`http://localhost:8080/api/submissions/${submissionIdNum}`);
-                    if (response.ok) {
-                        const submissionData = await response.json();
-                        setName(submissionData.name);
-                        setSelectedSectors(submissionData.selectedSectors.map(sector => sector.id.toString()));
-                        setAgreeToTerms(submissionData.agreeToTerms);
-                    } else {
-                        const errorBody = await response.text();
-                        console.error(`Error fetching submission data (Status: ${response.status}): ${errorBody}`);
-                        setGeneralFormError(`Failed to load previous submission data. (Status: ${response.status})`);
-                    }
+                    const submissionData = await fetchSubmission(submissionIdNum);
+                    setName(submissionData.name);
+                    setSelectedSectors(submissionData.selectedSectors.map(sector => sector.id.toString()));
+                    setAgreeToTerms(submissionData.agreeToTerms);
                 }
             } catch (error) {
                 console.error('Error during initial data load:', error);
-                setGeneralFormError('Failed to load initial data (sectors or saved submission). Please check your connection.');
+                setGeneralFormError(error.message || 'Failed to load initial data (sectors or saved submission). Please check your connection.');
             } finally {
                 setIsLoadingSectors(false);
             }
-        };    
-
+        };
         loadSectorsAndSubmission();
     }, []);
 
