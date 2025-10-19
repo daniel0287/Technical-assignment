@@ -25,7 +25,7 @@ This solution comprehensively addresses all requirements outlined in the technic
     *   Using regular expressions, it parses each option to extract the `value` (which becomes `Sector.id`), the `name`, and determines the `level` of indentation (based on `&nbsp;` characters) and `parentId` to accurately reconstruct the hierarchical structure.
     *   These `Sector` entities are then persisted into the PostgreSQL database. This ensures the database is automatically populated with the initial sector data.
 *   **Backend (`backend/src/main/java/com/example/assignment/controller/SectorController.java`):** Exposes a RESTful endpoint `GET /api/sectors` that returns a `List` of all stored `Sector` entities from the database.
-*   **Frontend (`frontend/src/SectorForm.js`):**
+*   **Frontend (`frontend/src/components/SectorForm/SectorForm.js`):**
     *   During its initial rendering, the `useEffect` hook makes an API call to `GET http://localhost:8080/api/sectors` to fetch the complete list of sectors.
     *   The `<select multiple>` element is dynamically rendered by iterating over the fetched sector data, creating an `<option>` for each `Sector`. The `sector.level` property is used to generate the correct number of non-breaking spaces (`\u00A0`) to visually represent the hierarchical indentation, mirroring the original HTML structure.
 
@@ -45,7 +45,7 @@ This solution comprehensively addresses all requirements outlined in the technic
         *   The `PUT /api/submissions/{id}` endpoint handles updating existing user submissions. Both utilize `@Valid @RequestBody` to trigger server-side validation and `userSubmissionRepository.save()` for persistence.
     *   The `manageSectors` private helper method ensures that `Sector` entities selected by the user are correctly fetched from the database and associated with the `UserSubmission` object, maintaining data integrity for the `ManyToMany` relationship.
     *   **Data Retrieval for Refill (3.3, 3.4):** The `GET /api/submissions/{id}` endpoint allows fetching a specific `UserSubmission` by its ID.
-*   **Frontend (`frontend/src/SectorForm.js`):**
+*   **Frontend (`frontend/src/components/SectorForm/SectorForm.js`):**
     *   **Client-side Validation (3.1):** Basic validation checks for `name` (not empty), `selectedSectors` (at least one selected), and `agreeToTerms` (checked) are performed before submitting to the backend, providing immediate feedback to the user.
     *   **Form Submission & Refill (3.2, 3.3, 3.4):**
         *   The `handleSubmit` function dynamically determines whether to send a `POST` (for new submissions) or `PUT` (for updates) request to the backend based on the presence of a `submissionId` in the component's state.
