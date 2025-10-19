@@ -1,0 +1,15 @@
+# Node
+node_modules/
+dist/
+build/
+
+# Java/Maven
+target/
+
+# Environment files
+.env
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
