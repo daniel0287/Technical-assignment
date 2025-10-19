@@ -1,0 +1,32 @@
+.App {
+  text-align: center;
+  font-family: Aria, sans-serif;
+  background-color: #eef1f5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  width: 100%;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: calc(18px + 1vmin);
+}
+
+main {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
