@@ -93,7 +93,7 @@ This application is designed for easy setup and execution using Docker Compose.
 *   `docker-compose.yml`: Defines and configures the multi-service Docker application.
 *   `backend/`: Contains the complete **Spring Boot backend** source code, including its `Dockerfile`.
 *   `frontend/`: Contains the complete **React frontend** source code, including its `Dockerfile`.
-*   `db_dump.sql`: A full database dump (schema and initial data) generated from a successful run of the application, directly addressing task requirement 1.
+*   `db_dump.sql`: A full database dump (schema and initial data) generated from a successful run of the application.
 
 ---
 
